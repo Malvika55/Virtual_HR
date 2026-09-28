@@ -6,6 +6,17 @@
       "use": "@vercel/python"
     }
   ],
+  "functions": {
+    "api/index.py": {
+      "includeFiles": [
+        "app.py",
+        "utils/**",
+        "templates/**",
+        "static/**",
+        "data/**"
+      ]
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
