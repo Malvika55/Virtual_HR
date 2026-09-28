@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <span class="eyebrow"><i class="fa-solid fa-clipboard-check"></i> INTERVIEW ASSESSMENTS</span>
+    <h1>Interview Evaluations & Results</h1>
+    <p>Comprehensive audit trail of completed virtual interviews, scores, and AI diagnostic feedback.</p>
+  </div>
+  <div class="heading-actions">
+    <a class="button primary" href="{{ url_for('mock_interview') }}">
+      <i class="fa-solid fa-video"></i> Start Mock Interview
+    </a>
+  </div>
+</section>
+
+{% if results %}
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fa-solid fa-comments"></i></div>
+    <span>Total Questions Answered</span>
+    <strong>{{ results|length }}</strong>
+    <small class="positive"><i class="fa-solid fa-circle-check"></i> System logged</small>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fa-solid fa-star"></i></div>
+    <span>Average Score</span>
+    <strong>
+      {% set scores = results|map(attribute='score')|list %}
+      {% if scores %}
+        {{ (scores|sum / scores|length)|round|int }}<small>/100</small>
+      {% else %}
+        0<small>/100</small>
+      {% endif %}
+    </strong>
+    <small class="positive"><i class="fa-solid fa-chart-line"></i> Benchmark</small>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon violet"><i class="fa-solid fa-user-check"></i></div>
+    <span>Candidate Profiles</span>
+    <strong>{{ results|map(attribute='candidate_id')|unique|list|length }}</strong>
+    <small class="neutral"><i class="fa-solid fa-users"></i> Assessed</small>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber"><i class="fa-solid fa-briefcase"></i></div>
+    <span>Job Roles Evaluated</span>
+    <strong>{{ results|map(attribute='job_role')|unique|list|length }}</strong>
+    <small class="neutral"><i class="fa-solid fa-layer-group"></i> Active roles</small>
+  </div>
+</div>
+
+<section class="panel table-panel">
+  <div class="panel-heading">
+    <div>
+      <h3>Assessment Records</h3>
+      <p>Click on any evaluation record to review question responses and AI grading notes.</p>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Candidate</th>
+          <th>Role</th>
+          <th>Category</th>
+          <th>Answer Transcript</th>
+          <th>Score</th>
+          <th>AI Feedback</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in results|reverse %}
+        <tr>
+          <td>
+            <div class="person">
+              <div class="avatar small">{{ item.candidate_id[:2].upper() }}</div>
+              <div>
+                <strong>{{ item.candidate_id }}</strong>
+              </div>
+            </div>
+          </td>
+          <td><span class="role-pill">{{ item.job_role }}</span></td>
+          <td><span class="pill-category">{{ item.category or 'General' }}</span></td>
+          <td style="max-width: 280px; white-space: normal;">
+            <span class="text-xs" style="color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ item.answer or 'No answer submitted.' }}
+            </span>
+          </td>
+          <td>
+            {% set s = item.score|int %}
+            <span class="score {% if s >= 75 %}high{% elif s >= 50 %}medium{% else %}low{% endif %}">
+              <strong>{{ s }}</strong>/100
+            </span>
+          </td>
+          <td style="max-width: 240px; white-space: normal;">
+            <small style="color: #64748b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ item.feedback }}
+            </small>
+          </td>
+          <td><small>{{ item.date }}</small></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<section class="panel empty-state-panel">
+  <i class="fa-solid fa-chart-simple"></i>
+  <h3>No interview evaluations recorded yet</h3>
+  <p>Run a virtual mock interview to test technical questions, practice with AI voice narration, and generate instant performance scorecards.</p>
+  <a class="button primary" href="{{ url_for('mock_interview') }}">
+    <i class="fa-solid fa-video"></i> Launch Virtual Interview Studio
+  </a>
+</section>
+{% endif %}
+{% endblock %}

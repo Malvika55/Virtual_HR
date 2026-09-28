@@ -1,0 +1,34 @@
+from pathlib import Path
+from datetime import datetime
+import pandas as pd
+
+DATA_FILE = Path(__file__).resolve().parents[1] / "data" / "candidates.csv"
+
+
+def load_candidates() -> pd.DataFrame:
+    frame = pd.read_csv(DATA_FILE).fillna("")
+    for column, default in {"ats_score": 0, "screening_score": 0, "interview_score": 0, "status": "New"}.items():
+        if column not in frame:
+            frame[column] = default
+    return frame
+
+
+def save_candidates(frame: pd.DataFrame) -> None:
+    frame.to_csv(DATA_FILE, index=False)
+
+
+def update_candidate(candidate_id: str, **values) -> bool:
+    frame = load_candidates()
+    candidate_str = str(candidate_id).strip().lower()
+    mask = (frame["id"].astype(str) == str(candidate_id)) | (frame["email"].astype(str).str.lower() == candidate_str)
+    if not mask.any():
+        return False
+    for key, value in values.items():
+        if key in frame.columns:
+            frame.loc[mask, key] = value
+    save_candidates(frame)
+    return True
+
+
+def record_interview_score(candidate_id: str, score: int) -> bool:
+    return update_candidate(candidate_id, interview_score=score, status="Interview", interview_date=datetime.now().strftime("%Y-%m-%d"))

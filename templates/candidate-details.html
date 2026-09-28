@@ -1,0 +1,67 @@
+{% extends 'base.html' %}{% block content %}<section class="page-heading">
+    <div><a class="back-link" href="{{ url_for('candidates') }}"><i class="fa-solid fa-arrow-left"></i> Candidate
+            management</a>
+        <h1>{{ candidate.name }}</h1>
+        <p>{{ candidate.position }} · {{ candidate.location }}</p>
+    </div>
+    <div class="heading-actions"><button class="button secondary"
+            data-toast="Email composer opened for {{ candidate.name }}."><i class="fa-regular fa-paper-plane"></i>
+            Contact</button><button class="button primary" data-status="Shortlisted"
+            data-candidate="{{ candidate.id }}"><i class="fa-solid fa-user-check"></i> Shortlist</button></div>
+</section>
+<div class="profile-grid">
+    <section class="panel profile-summary">
+        <div class="profile-top">
+            <div class="avatar xl">{{ candidate.name[:2].upper() }}</div>
+            <div>
+                <h2>{{ candidate.name }}</h2>
+                <p>{{ candidate.email }}</p>
+                <p>{{ candidate.phone }} · {{ candidate.location }}</p>
+            </div><span class="status {{ candidate.status|lower|replace(' ', '-') }}">{{ candidate.status }}</span>
+        </div>
+        <div class="detail-section">
+            <h3>Professional information</h3>
+            <div class="detail-grid">
+                <div><span>Applied position</span><strong>{{ candidate.position }}</strong></div>
+                <div><span>Experience</span><strong>{{ candidate.experience }}</strong></div>
+                <div><span>Skills</span><strong>{{ candidate.skills }}</strong></div>
+                <div><span>Resume</span><strong><a class="text-link" href="{{ url_for('resume_analyzer') }}">View
+                            uploaded resume <i class="fa-solid fa-arrow-up-right-from-square"></i></a></strong></div>
+            </div>
+        </div>
+    </section>
+    <section class="panel evaluation-card">
+        <div class="panel-heading">
+            <div>
+                <h3>Evaluation snapshot</h3>
+                <p>Latest scoring across the pipeline</p>
+            </div>
+        </div>
+        <div class="score-list">
+            <div><span>ATS score</span><strong>{{ candidate.ats_score }}<small>/100</small></strong>
+                <div class="progress"><i style="width:{{ candidate.ats_score }}%"></i></div>
+            </div>
+            <div><span>Screening score</span><strong>{{ candidate.screening_score }}<small>/100</small></strong>
+                <div class="progress amber"><i style="width:{{ candidate.screening_score }}%"></i></div>
+            </div>
+            <div><span>Interview score</span><strong>{{ candidate.interview_score }}<small>/100</small></strong>
+                <div class="progress violet"><i style="width:{{ candidate.interview_score }}%"></i></div>
+            </div>
+        </div>
+    </section>
+    <section class="panel decision-panel">
+        <div class="panel-heading">
+            <div>
+                <h3>HR decision</h3>
+                <p>Update the candidate pipeline status</p>
+            </div>
+        </div>
+        <div class="decision-buttons"><button class="button primary" data-status="Shortlisted"
+                data-candidate="{{ candidate.id }}"><i class="fa-solid fa-check"></i> Shortlist</button><button
+                class="button secondary" data-status="Hold" data-candidate="{{ candidate.id }}"><i
+                    class="fa-solid fa-pause"></i> Put on hold</button><button class="button danger"
+                data-status="Rejected" data-candidate="{{ candidate.id }}"><i class="fa-solid fa-xmark"></i>
+                Reject</button></div>
+    </section>
+</div>{% endblock %}{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>{% endblock %}

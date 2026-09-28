@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading"><div><span class="eyebrow">RECRUITER PORTAL</span><h1>ATS results</h1><p>Every analysis is stored with its transparent score breakdown.</p></div></section>
+<section class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>Resume</th><th>Job ID</th><th>ATS score</th><th>Skills</th><th>Missing skills</th><th>Date</th></tr></thead><tbody>{% for item in results %}<tr><td>{{ item.resume_filename }}</td><td>{{ item.job_id }}</td><td><strong>{{ item.ats_score }}/100</strong></td><td>{{ item.matched_skills|replace('|', ', ') }}</td><td>{{ item.missing_skills|replace('|', ', ') }}</td><td>{{ item.analysis_date }}</td></tr>{% else %}<tr><td colspan="6">No resume analyses yet.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

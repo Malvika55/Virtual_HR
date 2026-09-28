@@ -1,0 +1,23 @@
+{% extends 'base.html' %}{% block content %}<section class="page-heading">
+  <div><span class="eyebrow">COMMUNICATIONS</span>
+    <h1>Email communication</h1>
+    <p>Use templates to keep candidate updates timely and consistent.</p>
+  </div>
+</section>
+<section class="panel form-panel email-form">
+  <div class="template-row"><button class="template-chip" data-template="received">Application received</button><button
+      class="template-chip" data-template="interview">Interview invitation</button><button class="template-chip"
+      data-template="shortlisted">Shortlisted</button><button class="template-chip"
+      data-template="rejected">Rejection</button></div>
+  <form method="post">
+    <div class="form-grid"><label>Recipient<input id="recipient" name="recipient" type="email"
+          placeholder="candidate@example.com" required></label><label>Subject<input id="subject" name="subject" required
+          placeholder="Email subject"></label><label class="full">Message<textarea id="message" name="message" rows="10"
+          required placeholder="Write your message..."></textarea></label></div>
+    <div class="form-actions"><span class="muted"><i class="fa-solid fa-lock"></i> Gmail credentials stay on the
+        server.</span><button class="button primary" type="submit"><i class="fa-regular fa-paper-plane"></i> Send
+        email</button></div>
+  </form>{% if sent %}<div class="success-callout"><i class="fa-solid fa-circle-check"></i> Email sent successfully
+    through Gmail.</div>{% endif %}{% if email_error %}<div class="error-callout"><i
+      class="fa-solid fa-circle-exclamation"></i> {{ email_error }}</div>{% endif %}
+</section>{% endblock %}

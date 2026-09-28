@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="resume-builder-container">
+
+  <!-- Header Bar -->
+  <section class="page-heading">
+    <div>
+      <span class="eyebrow"><i class="fa-solid fa-pen-ruler"></i> ATS RESUME WORKBENCH</span>
+      <h1>Interactive Resume Builder</h1>
+      <p>Draft, customize, and download an ATS-compliant professional resume with live real-time preview.</p>
+    </div>
+    <div class="heading-actions builder-top-actions">
+      <button type="button" class="button secondary" id="loadSampleBtn" title="Load pre-filled sample data">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Data
+      </button>
+      <button type="button" class="button secondary" id="exportJsonBtn" title="Save resume data as JSON">
+        <i class="fa-solid fa-file-export"></i> Export JSON
+      </button>
+      <label class="button secondary file-upload-btn" title="Upload saved JSON">
+        <i class="fa-solid fa-file-import"></i> Import JSON
+        <input type="file" id="importJsonInput" accept=".json" style="display:none;">
+      </label>
+      <button type="button" class="button primary" id="printResumeBtn">
+        <i class="fa-solid fa-file-pdf"></i> Download PDF / Print
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Builder Split Screen -->
+  <div class="builder-split-layout">
+
+    <!-- Left Column: Form Controls Accordion -->
+    <div class="builder-controls-column">
+
+      <!-- Styling & Theme Toolbar -->
+      <div class="panel builder-theme-bar">
+        <div class="theme-picker">
+          <span class="toolbar-label">Color Theme:</span>
+          <button type="button" class="theme-dot active navy" data-theme="theme-navy" title="Executive Navy"></button>
+          <button type="button" class="theme-dot emerald" data-theme="theme-emerald" title="Emerald Slate"></button>
+          <button type="button" class="theme-dot violet" data-theme="theme-violet" title="Modern Violet"></button>
+          <button type="button" class="theme-dot slate" data-theme="theme-slate" title="Monochrome Slate"></button>
+        </div>
+        <div class="density-picker">
+          <span class="toolbar-label">Spacing:</span>
+          <button type="button" class="density-btn active" data-density="normal">Standard</button>
+          <button type="button" class="density-btn" data-density="compact">Compact (1-Page)</button>
+        </div>
+      </div>
+
+      <form id="resumeBuilderForm" onsubmit="return false;">
+
+        <!-- 1. Personal & Contact Details -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-user text-blue"></i> Personal & Contact Info</h4>
+            <span class="badge">Header</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              <span>Full Name</span>
+              <input type="text" id="rbName" value="Aarav Mehta" required>
+            </label>
+            <label>
+              <span>Target Job Title</span>
+              <input type="text" id="rbTitle" value="Senior Python & Full Stack Engineer">
+            </label>
+            <label>
+              <span>Email Address</span>
+              <input type="email" id="rbEmail" value="aarav.mehta@example.com">
+            </label>
+            <label>
+              <span>Phone Number</span>
+              <input type="text" id="rbPhone" value="+91 98765 43210">
+            </label>
+            <label>
+              <span>Location (City, Country)</span>
+              <input type="text" id="rbLocation" value="Bengaluru, India">
+            </label>
+            <label>
+              <span>Portfolio / Website</span>
+              <input type="text" id="rbWebsite" value="aaravmehta.dev">
+            </label>
+            <label>
+              <span>LinkedIn Profile</span>
+              <input type="text" id="rbLinkedin" value="linkedin.com/in/aarav-mehta">
+            </label>
+            <label>
+              <span>GitHub Profile</span>
+              <input type="text" id="rbGithub" value="github.com/aaravmehta">
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Professional Summary -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-align-left text-blue"></i> Professional Summary</h4>
+            <div class="template-dropdown-wrap">
+              <select id="summaryTemplateSelect" class="small-select">
+                <option value="">Insert Role Template...</option>
+                <option value="python">Python Developer Template</option>
+                <option value="fullstack">Full Stack Engineer Template</option>
+                <option value="data">Data Analyst Template</option>
+                <option value="qa">QA Automation Engineer Template</option>
+                <option value="devops">DevOps Cloud Engineer Template</option>
+              </select>
+            </div>
+          </div>
+          <label>
+            <span>Career Overview (2-4 sentences with strong impact)</span>
+            <textarea id="rbSummary" rows="4">Results-oriented Software Engineer with 4+ years of experience designing and scaling high-performance web applications and REST APIs using Python, Flask, React, and PostgreSQL. Proven track record of improving system uptime by 30% and leading microservice migrations.</textarea>
+          </label>
+        </div>
+
+        <!-- 3. Technical Skills -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-code text-blue"></i> Technical Skills</h4>
+            <span class="badge success">ATS Keywords</span>
+          </div>
+          <div class="form-grid">
+            <label class="full">
+              <span>Programming Languages</span>
+              <input type="text" id="rbSkillLangs" value="Python, JavaScript, TypeScript, SQL, Bash">
+            </label>
+            <label class="full">
+              <span>Frameworks & Libraries</span>
+              <input type="text" id="rbSkillFrameworks" value="Flask, FastAPI, Django, React.js, Node.js, Express, SQLAlchemy">
+            </label>
+            <label class="full">
+              <span>Databases & Caching</span>
+              <input type="text" id="rbSkillDatabases" value="PostgreSQL, MySQL, MongoDB, Redis">
+            </label>
+            <label class="full">
+              <span>Developer Tools & Cloud</span>
+              <input type="text" id="rbSkillTools" value="Docker, Kubernetes, AWS (EC2, S3), Git, CI/CD (GitHub Actions), Linux, Postman">
+            </label>
+          </div>
+        </div>
+
+        <!-- 4. Work Experience (Dynamic Repeater) -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-briefcase text-blue"></i> Work Experience</h4>
+            <button type="button" class="button secondary small" id="addExperienceBtn">
+              <i class="fa-solid fa-plus"></i> Add Position
+            </button>
+          </div>
+          <div id="experienceList" class="repeater-container">
+            <!-- Dynamic items rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 5. Key Projects (Dynamic Repeater) -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-diagram-project text-blue"></i> Projects</h4>
+            <button type="button" class="button secondary small" id="addProjectBtn">
+              <i class="fa-solid fa-plus"></i> Add Project
+            </button>
+          </div>
+          <div id="projectList" class="repeater-container">
+            <!-- Dynamic items rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 6. Education (Dynamic Repeater) -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-graduation-cap text-blue"></i> Education</h4>
+            <button type="button" class="button secondary small" id="addEducationBtn">
+              <i class="fa-solid fa-plus"></i> Add Degree
+            </button>
+          </div>
+          <div id="educationList" class="repeater-container">
+            <!-- Dynamic items rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 7. Certifications & Achievements -->
+        <div class="panel form-section-card">
+          <div class="section-card-header">
+            <h4><i class="fa-solid fa-award text-blue"></i> Certifications & Honors</h4>
+            <button type="button" class="button secondary small" id="addCertBtn">
+              <i class="fa-solid fa-plus"></i> Add Certification
+            </button>
+          </div>
+          <div id="certList" class="repeater-container">
+            <!-- Dynamic items rendered by JS -->
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Right Column: Real-Time Live A4 Resume Preview -->
+    <div class="builder-preview-column">
+      <div class="preview-sticky-wrap">
+        <div class="preview-top-actions">
+          <span class="preview-badge"><i class="fa-regular fa-eye"></i> Real-time Live A4 Preview</span>
+          <button type="button" class="button primary small" id="quickPrintBtn">
+            <i class="fa-solid fa-print"></i> Print / PDF
+          </button>
+        </div>
+
+        <!-- A4 Paper Sheet Wrapper -->
+        <div class="resume-sheet-container" id="resumeSheetContainer">
+          <div class="a4-sheet theme-navy" id="a4Paper">
+
+            <!-- Resume Header -->
+            <header class="resume-head">
+              <h1 id="pvName">Aarav Mehta</h1>
+              <h2 id="pvTitle">Senior Python & Full Stack Engineer</h2>
+              <div class="resume-contact-bar" id="pvContactBar">
+                <!-- Dynamically rendered contact chips -->
+              </div>
+            </header>
+
+            <!-- Professional Summary Section -->
+            <section class="resume-sec" id="secSummary">
+              <h3 class="sec-heading"><span>Professional Summary</span></h3>
+              <p class="sec-text" id="pvSummary"></p>
+            </section>
+
+            <!-- Technical Skills Section -->
+            <section class="resume-sec" id="secSkills">
+              <h3 class="sec-heading"><span>Technical Skills</span></h3>
+              <div class="skills-rows" id="pvSkillsRows"></div>
+            </section>
+
+            <!-- Work Experience Section -->
+            <section class="resume-sec" id="secExperience">
+              <h3 class="sec-heading"><span>Professional Experience</span></h3>
+              <div class="experience-entries" id="pvExperienceEntries"></div>
+            </section>
+
+            <!-- Projects Section -->
+            <section class="resume-sec" id="secProjects">
+              <h3 class="sec-heading"><span>Key Technical Projects</span></h3>
+              <div class="project-entries" id="pvProjectEntries"></div>
+            </section>
+
+            <!-- Education Section -->
+            <section class="resume-sec" id="secEducation">
+              <h3 class="sec-heading"><span>Education</span></h3>
+              <div class="education-entries" id="pvEducationEntries"></div>
+            </section>
+
+            <!-- Certifications Section -->
+            <section class="resume-sec" id="secCertifications">
+              <h3 class="sec-heading"><span>Certifications & Honors</span></h3>
+              <ul class="cert-entries" id="pvCertEntries"></ul>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/resume-builder.js') }}"></script>
+{% endblock %}

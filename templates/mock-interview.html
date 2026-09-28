@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="virtual-interview-wrapper">
+
+  <!-- ============================================================ -->
+  <!-- STAGE 1: PRE-INTERVIEW LOBBY & DEVICE CHECK                  -->
+  <!-- ============================================================ -->
+  <div id="lobbyStage" class="interview-stage-container">
+    <section class="page-heading">
+      <div>
+        <span class="eyebrow"><i class="fa-solid fa-video"></i> VIRTUAL INTERVIEW PLATFORM</span>
+        <h1>{{ selected_job.title }} AI Technical Interview</h1>
+        <p>Experience a realistic virtual interview with AI voice questions, live webcam preview, and automated scoring.</p>
+      </div>
+      <div class="interview-meta">
+        <span><i class="fa-solid fa-list-check"></i> {{ questions|length }} Questions Configured</span>
+        <span><i class="fa-solid fa-clock"></i> ~{{ questions|length * 2 }} Mins Duration</span>
+        <span><i class="fa-solid fa-shield-halved"></i> Proctored Session</span>
+      </div>
+    </section>
+
+    <!-- Configuration Bar -->
+    <form class="panel filter-panel" method="get" id="lobbyFilterForm">
+      <div class="lobby-filter-grid">
+        <label>
+          <span>Target Job Role</span>
+          <select name="job_id" id="jobSelect" onchange="this.form.submit()">
+            {% for job in jobs %}
+            <option value="{{ job.id }}" {% if selected_job.id|string == job.id|string %}selected{% endif %}>
+              {{ job.title }} ({{ job.department }})
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>
+          <span>Difficulty Level</span>
+          <select name="difficulty" id="difficultySelect" onchange="this.form.submit()">
+            <option value="" {% if not selected_difficulty %}selected{% endif %}>Mixed (Recommended)</option>
+            <option value="Easy" {% if selected_difficulty == 'Easy' %}selected{% endif %}>Easy (Foundations)</option>
+            <option value="Medium" {% if selected_difficulty == 'Medium' %}selected{% endif %}>Medium (Core Engineering)</option>
+            <option value="Hard" {% if selected_difficulty == 'Hard' %}selected{% endif %}>Hard (Advanced & Architecture)</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Question Count</span>
+          <select name="count" id="countSelect" onchange="this.form.submit()">
+            <option value="3" {% if selected_count == 3 %}selected{% endif %}>3 Questions (Quick Practice)</option>
+            <option value="5" {% if selected_count == 5 %}selected{% endif %}>5 Questions (Standard Round)</option>
+            <option value="8" {% if selected_count == 8 %}selected{% endif %}>8 Questions (In-Depth Technical)</option>
+            <option value="10" {% if selected_count == 10 %}selected{% endif %}>10 Questions (Comprehensive Interview)</option>
+          </select>
+        </label>
+      </div>
+    </form>
+
+    <!-- Lobby Tech Check Grid -->
+    <div class="lobby-grid">
+      <!-- Video & Mic Preview Card -->
+      <div class="panel lobby-preview-card">
+        <div class="preview-header">
+          <span class="preview-title"><i class="fa-solid fa-camera"></i> Hardware Readiness Check</span>
+          <span class="badge" id="cameraStatusBadge"><i class="fa-solid fa-circle"></i> Camera Initializing</span>
+        </div>
+
+        <div class="video-feed-container">
+          <video id="lobbyVideo" autoplay playsinline muted></video>
+          <div class="video-fallback" id="videoFallback">
+            <div class="avatar xl">{{ display_name[:2].upper() }}</div>
+            <p><strong>Camera is Standby</strong></p>
+            <small>Click "Enable Camera" or continue with audio/text only.</small>
+            <button type="button" class="button secondary small mt-2" id="requestCameraBtn">
+              <i class="fa-solid fa-video"></i> Enable Camera & Mic
+            </button>
+          </div>
+          <div class="face-guide"></div>
+        </div>
+
+        <div class="preview-controls">
+          <div class="audio-level-meter">
+            <span class="meter-label"><i class="fa-solid fa-microphone"></i> Mic Test</span>
+            <div class="vu-meter-bar">
+              <div class="vu-meter-fill" id="lobbyVuFill"></div>
+            </div>
+            <small id="lobbyMicStatus">Speak to test microphone</small>
+          </div>
+          <div class="preview-toggles">
+            <button type="button" class="icon-toggle-btn active" id="toggleCamLobby" title="Toggle Camera">
+              <i class="fa-solid fa-video"></i>
+            </button>
+            <button type="button" class="icon-toggle-btn active" id="toggleMicLobby" title="Toggle Microphone">
+              <i class="fa-solid fa-microphone"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions & Launch Card -->
+      <div class="panel lobby-info-card">
+        <h3>Interview Readiness Checklist</h3>
+        <p class="muted">Ensure you are in a quiet, well-lit room for best audio & evaluation accuracy.</p>
+
+        <ul class="checklist">
+          <li>
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <div>
+              <strong>AI Voice & Audio Narration</strong>
+              <span>Questions will be spoken out loud by the virtual AI interviewer.</span>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <div>
+              <strong>Voice & Text Answering</strong>
+              <span>You can speak your response via the live voice transcriber or type it directly.</span>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <div>
+              <strong>STAR Framework Evaluation</strong>
+              <span>Responses are graded for technical depth, relevance, structure, and keywords.</span>
+            </div>
+          </li>
+          <li>
+            <i class="fa-solid fa-circle-check text-success"></i>
+            <div>
+              <strong>Timed Per Question</strong>
+              <span>3 minutes per question with audio/visual warnings before time expires.</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="lobby-action-box">
+          <button class="button primary wide large" id="startInterviewBtn">
+            <i class="fa-solid fa-circle-play"></i> Enter Virtual Interview Room
+          </button>
+          <span class="subtext"><i class="fa-solid fa-lock"></i> Session is private & saved to your candidate profile.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- STAGE 2: LIVE VIRTUAL INTERVIEW STUDIO                      -->
+  <!-- ============================================================ -->
+  <div id="interviewStage" class="interview-stage-container hidden">
+
+    <!-- Top Live Studio Bar -->
+    <div class="studio-header panel">
+      <div class="studio-status">
+        <span class="live-dot"></span>
+        <strong>LIVE INTERVIEW</strong>
+        <span class="role-pill">{{ selected_job.title }}</span>
+      </div>
+
+      <div class="studio-timer-group">
+        <div class="timer-box">
+          <i class="fa-regular fa-clock"></i>
+          <span>Question Timer:</span>
+          <strong id="questionTimer">03:00</strong>
+        </div>
+        <div class="timer-box secondary">
+          <span>Session:</span>
+          <strong id="sessionTimer">00:00</strong>
+        </div>
+      </div>
+
+      <div class="studio-actions">
+        <button type="button" class="button secondary small" id="soundToggleBtn" title="Toggle AI Voice Sound">
+          <i class="fa-solid fa-volume-high"></i> AI Voice: On
+        </button>
+        <button type="button" class="button danger small" id="leaveInterviewBtn" title="Exit Interview">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Studio Split Screen -->
+    <div class="studio-layout">
+
+      <!-- Left Column: Dual Video Tile Stage -->
+      <div class="studio-video-stage">
+
+        <!-- Tile 1: AI Virtual Interviewer -->
+        <div class="panel video-tile ai-tile">
+          <div class="tile-header">
+            <div class="ai-profile">
+              <span class="ai-badge"><i class="fa-solid fa-robot"></i></span>
+              <div>
+                <strong>Alex Chen</strong>
+                <span>Lead AI Technical Interviewer</span>
+              </div>
+            </div>
+            <span class="ai-state-badge" id="aiStateBadge"><i class="fa-solid fa-waveform"></i> Ready</span>
+          </div>
+
+          <div class="ai-avatar-canvas">
+            <div class="ai-avatar-circle" id="aiAvatarCircle">
+              <div class="pulse-ring r1"></div>
+              <div class="pulse-ring r2"></div>
+              <div class="pulse-ring r3"></div>
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <p class="ai-subtitle" id="aiSubtitle">"Welcome to your virtual interview. Click 'Read Question' anytime to listen."</p>
+          </div>
+
+          <div class="tile-footer">
+            <button type="button" class="button ghost small" id="hearQuestionBtn">
+              <i class="fa-solid fa-volume-high"></i> Listen to Question
+            </button>
+            <span class="ai-caption"><i class="fa-solid fa-shield"></i> Virtual HR Proctor AI</span>
+          </div>
+        </div>
+
+        <!-- Tile 2: Candidate Live Webcam Feed -->
+        <div class="panel video-tile candidate-tile">
+          <div class="tile-header">
+            <div class="candidate-tag">
+              <div class="avatar small">{{ display_name[:2].upper() }}</div>
+              <strong>{{ display_name }} (You)</strong>
+            </div>
+            <span class="rec-badge" id="recBadge"><i class="fa-solid fa-circle"></i> CAM ACTIVE</span>
+          </div>
+
+          <div class="candidate-feed-box">
+            <video id="studioVideo" autoplay playsinline muted></video>
+            <div class="video-fallback" id="studioVideoFallback">
+              <div class="avatar xl">{{ display_name[:2].upper() }}</div>
+              <span>Video Paused</span>
+            </div>
+            <div class="studio-face-guide"></div>
+          </div>
+
+          <div class="tile-footer studio-feed-footer">
+            <div class="mic-meter-inline">
+              <i class="fa-solid fa-microphone"></i>
+              <div class="mini-vu-bar"><div class="mini-vu-fill" id="studioVuFill"></div></div>
+            </div>
+            <div class="stream-controls">
+              <button type="button" class="icon-toggle-btn active small" id="toggleCamStudio" title="Toggle Camera">
+                <i class="fa-solid fa-video"></i>
+              </button>
+              <button type="button" class="icon-toggle-btn active small" id="toggleMicStudio" title="Toggle Microphone">
+                <i class="fa-solid fa-microphone"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Interactive Question & Response Workspace -->
+      <div class="studio-workspace">
+        <section class="panel question-workspace-panel">
+
+          <!-- Question Top Bar -->
+          <div class="workspace-top">
+            <div class="question-tracker">
+              <span class="pill-number">Question <b id="questionIndexText">1</b> of {{ questions|length }}</span>
+              <span class="pill-category" id="questionCategoryText">{{ questions[0].category if questions else 'General' }}</span>
+              <span class="pill-difficulty" id="questionDifficultyText">{{ questions[0].difficulty if questions else 'Medium' }}</span>
+            </div>
+            <span class="points-badge" id="questionWeightText"><i class="fa-solid fa-award"></i> Weight: 10 pts</span>
+          </div>
+
+          <!-- Question Progress Bar -->
+          <div class="question-progress-track">
+            <div class="question-progress-fill" id="studioProgressBar" style="width: {{ 100 / (questions|length or 1) }}%"></div>
+          </div>
+
+          <!-- Question Content Box -->
+          <div class="question-main-box">
+            <span class="section-label">INTERVIEW QUESTION</span>
+            <h2 id="studioQuestionHeading" class="studio-question-text">
+              {{ questions[0].question if questions else 'No questions available.' }}
+            </h2>
+
+            <!-- Answer Box with Voice Dictation & Text Tools -->
+            <div class="answer-container">
+              <div class="answer-toolbar">
+                <div class="voice-transcribe-box">
+                  <button type="button" class="button small voice-btn" id="voiceDictationBtn" title="Speak to record answer">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                    <span id="voiceBtnLabel">Voice Dictation (Speak)</span>
+                  </button>
+                  <span class="voice-status-text" id="voiceStatusText">Click to transcribe voice into text</span>
+                </div>
+                <div class="word-count-badge">
+                  <span id="wordCountText">0 words</span>
+                  <span class="dot-separator">•</span>
+                  <span id="speakTimeText">0 sec</span>
+                </div>
+              </div>
+
+              <textarea
+                id="studioAnswerArea"
+                placeholder="Type or speak your answer here. State the core concept, explain how it works, and provide a concrete practical example or production trade-off..."
+                rows="8"
+              ></textarea>
+
+              <div class="answer-guidance-bar">
+                <span><i class="fa-solid fa-lightbulb text-amber"></i> Tip: Use the STAR method (Situation, Task, Action, Result) or discuss trade-offs.</span>
+                <button type="button" class="hint-link" id="toggleHintBtn">Show keywords hint</button>
+              </div>
+
+              <div class="keyword-hint-box hidden" id="keywordHintBox">
+                <strong>Expected technical concepts:</strong>
+                <span id="hintConceptsText">{{ questions[0].expected_concepts if questions else '' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question Action Bar -->
+          <div class="workspace-actions">
+            <button type="button" class="button secondary" id="prevQuestionBtn" disabled>
+              <i class="fa-solid fa-arrow-left"></i> Previous
+            </button>
+            <div class="right-actions">
+              <button type="button" class="button ghost" id="skipQuestionBtn">
+                Skip <i class="fa-solid fa-forward"></i>
+              </button>
+              <button type="button" class="button primary" id="nextQuestionBtn">
+                Save & Next <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Question Drawer / Status Tracker -->
+        <aside class="panel question-drawer">
+          <div class="drawer-header">
+            <h4>Question Bank Roadmap</h4>
+            <span class="muted text-xs"><span id="answeredCount">0</span>/{{ questions|length }} Answered</span>
+          </div>
+
+          <div class="drawer-list" id="questionNavList">
+            {% for q in questions %}
+            <button type="button" class="drawer-item {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}">
+              <span class="step-num">{{ '%02d'|format(loop.index) }}</span>
+              <div class="item-meta">
+                <strong>{{ q.category }}</strong>
+                <small>{{ q.difficulty }}</small>
+              </div>
+              <span class="status-icon"><i class="fa-solid fa-circle-dot"></i></span>
+            </button>
+            {% endfor %}
+          </div>
+
+          <div class="drawer-footer">
+            <button type="button" class="button primary wide" id="finishInterviewEarlyBtn">
+              <i class="fa-solid fa-flag-checkered"></i> Finish Interview
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- STAGE 3: INTERVIEW PERFORMANCE SCORECARD                    -->
+  <!-- ============================================================ -->
+  <div id="scorecardStage" class="interview-stage-container hidden">
+
+    <section class="page-heading">
+      <div>
+        <span class="eyebrow"><i class="fa-solid fa-award"></i> ASSESSMENT COMPLETE</span>
+        <h1>Interview Performance Report</h1>
+        <p>Your responses have been evaluated against role-specific criteria, keywords, and structural depth.</p>
+      </div>
+      <div class="heading-actions">
+        <button class="button secondary" onclick="window.print()">
+          <i class="fa-solid fa-print"></i> Print Scorecard
+        </button>
+        <a class="button primary" href="{{ url_for('interview_results') }}">
+          <i class="fa-solid fa-clipboard-check"></i> Central Results Portal
+        </a>
+      </div>
+    </section>
+
+    <!-- Hero Scorecard Banner -->
+    <div class="scorecard-hero panel">
+      <div class="score-circle-container">
+        <div class="score-circle" id="overallScoreCircle">
+          <span class="score-num" id="heroScoreVal">0</span>
+          <span class="score-den">/ 100</span>
+        </div>
+      </div>
+
+      <div class="score-summary-details">
+        <div class="grade-pill-row">
+          <span class="hire-grade-pill" id="heroGradePill">Evaluating...</span>
+          <span class="role-pill">{{ selected_job.title }}</span>
+        </div>
+        <h2 id="heroHeadline">Calculating your overall assessment...</h2>
+        <p class="muted" id="heroSubtext">Evaluated across technical correctness, communication structure, and domain vocabulary.</p>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span>Technical Accuracy</span>
+            <strong id="metricTechnical">0%</strong>
+            <div class="mini-bar"><div class="mini-fill" id="fillTechnical"></div></div>
+          </div>
+          <div class="metric-card">
+            <span>Communication & Structure</span>
+            <strong id="metricCommunication">0%</strong>
+            <div class="mini-bar"><div class="mini-fill" id="fillCommunication"></div></div>
+          </div>
+          <div class="metric-card">
+            <span>Questions Answered</span>
+            <strong id="metricAnswered">0/{{ questions|length }}</strong>
+            <div class="mini-bar"><div class="mini-fill" id="fillAnswered"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question-by-Question Review -->
+    <section class="panel review-section">
+      <div class="panel-heading">
+        <div>
+          <h3>Detailed Question Breakdowns</h3>
+          <p>Review the questions asked, your submitted response, matched technical concepts, and AI feedback.</p>
+        </div>
+      </div>
+
+      <div class="review-list" id="reviewListContainer">
+        <!-- Rendered dynamically by interview.js -->
+        <div class="loading-state">
+          <i class="fa-solid fa-spinner fa-spin"></i> Generating detailed feedback...
+        </div>
+      </div>
+    </section>
+
+    <div class="scorecard-bottom-actions">
+      <button class="button secondary" id="retakeInterviewBtn">
+        <i class="fa-solid fa-rotate-left"></i> Retake Interview
+      </button>
+      <a class="button primary" href="{{ url_for('candidate_dashboard') }}">
+        <i class="fa-solid fa-house"></i> Return to Candidate Dashboard
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.questions = {{ questions|tojson }};
+  window.interviewRole = {{ selected_job.title|tojson }};
+  window.accountEmail = {{ account_email|tojson }};
+  window.candidateName = {{ display_name|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/interview.js') }}"></script>
+{% endblock %}

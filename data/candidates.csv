@@ -1,0 +1,11 @@
+id,name,email,phone,position,experience,location,skills,ats_score,screening_score,interview_score,status
+1,Aarav Mehta,aarav.mehta@example.com,+91 90000 10001,Python Developer,4 years,Bengaluru,Python; Flask; SQL; REST API,88,84,82,Shortlisted
+2,Nisha Kapoor,nisha.kapoor@example.com,+91 90000 10002,Full Stack Engineer,3 years,Pune,JavaScript; React; Node; SQL,81,78,76,Interview
+3,Rohan Shah,rohan.shah@example.com,+91 90000 10003,Data Analyst,2 years,Mumbai,Python; Pandas; SQL; Excel,79,82,74,Screening
+4,Ira Sen,ira.sen@example.com,+91 90000 10004,Software Engineer,5 years,Hyderabad,Java; Spring; SQL; AWS,91,88,89,Shortlisted
+5,Vikram Rao,vikram.rao@example.com,+91 90000 10005,QA Engineer,3 years,Chennai,Python; Selenium; Testing; SQL,75,71,68,Hold
+6,Meera Joshi,meera.joshi@example.com,+91 90000 10006,Frontend Developer,2 years,Delhi,JavaScript; HTML; CSS; Git,84,80,79,Interview
+7,Kabir Malik,kabir.malik@example.com,+91 90000 10007,DevOps Engineer,4 years,Gurugram,Docker; AWS; Linux; Git,86,77,81,Shortlisted
+8,Tanya Bose,tanya.bose@example.com,+91 90000 10008,Business Analyst,6 years,Kolkata,SQL; Excel; Agile; Tableau,72,74,70,Rejected
+9,Dev Patel,dev.patel@example.com,+91 90000 10009,Backend Developer,3 years,Ahmedabad,Python; Flask; PostgreSQL; Docker,89,86,84,New
+10,Sana Ali,sana.ali@example.com,+91 90000 10010,Product Analyst,2 years,Noida,SQL; Python; Power BI; Research,77,76,73,New

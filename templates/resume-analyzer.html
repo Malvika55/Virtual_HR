@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <span class="eyebrow"><i class="fa-solid fa-file-shield"></i> ATS SCANNER & INTELLIGENCE</span>
+    <h1>Resume & ATS Analyzer</h1>
+    <p>Benchmark your resume against role-specific requirements, evaluate ATS parseability, and uncover missing keywords.</p>
+  </div>
+  <div class="heading-actions">
+    <a class="button secondary" href="{{ url_for('ats_results') }}">
+      <i class="fa-solid fa-list-check"></i> Past ATS Results
+    </a>
+    <a class="button primary" href="{{ url_for('resume_builder') }}">
+      <i class="fa-solid fa-pen-ruler"></i> Open Resume Builder
+    </a>
+  </div>
+</section>
+
+<div class="two-column">
+  <!-- Upload / Input Panel -->
+  <section class="panel upload-panel">
+    <div class="panel-heading">
+      <div>
+        <h3>Candidate Resume Input</h3>
+        <p>Upload a PDF document or paste your resume text directly.</p>
+      </div>
+      <div class="input-mode-tabs">
+        <button type="button" class="tab-btn active" id="tabUpload"><i class="fa-solid fa-file-pdf"></i> Upload PDF</button>
+        <button type="button" class="tab-btn" id="tabPaste"><i class="fa-solid fa-align-left"></i> Paste Text</button>
+      </div>
+    </div>
+
+    <form id="resumeForm" enctype="multipart/form-data">
+      <label>
+        <span>Target Job Role</span>
+        <select name="job_id" id="analyzerJobSelect">
+          {% for job in jobs %}
+          <option value="{{ job.id }}">{{ job.title }} · {{ job.department }} ({{ job.location }})</option>
+          {% endfor %}
+          <option value="">Custom Role / Use Description Below</option>
+        </select>
+      </label>
+
+      <!-- Mode 1: PDF Upload Dropzone -->
+      <div id="uploadInputSection">
+        <label class="dropzone" id="dropzoneArea" for="resumeInput">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <strong>Drag & drop resume PDF here or <u>browse files</u></strong>
+          <span>Supported format: PDF up to 10 MB</span>
+          <input id="resumeInput" name="resume" type="file" accept="application/pdf">
+        </label>
+        <div id="fileInfoDisplay" class="file-info-display hidden">
+          <div class="file-icon"><i class="fa-solid fa-file-pdf text-red"></i></div>
+          <div class="file-meta">
+            <strong id="fileNameText">resume.pdf</strong>
+            <small id="fileSizeText">240 KB</small>
+          </div>
+          <button type="button" class="icon-button" id="removeFileBtn" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <!-- Mode 2: Direct Text Paste -->
+      <div id="pasteInputSection" class="hidden">
+        <label>
+          <span>Paste Full Resume Content</span>
+          <textarea name="resume_text" id="resumeTextArea" rows="7" placeholder="Paste all sections of your resume here (Summary, Work History, Education, Skills, Projects)..."></textarea>
+        </label>
+      </div>
+
+      <label>
+        <span>Custom Job Description / Requirements <span class="optional">(Optional)</span></span>
+        <textarea name="job_description" rows="3" placeholder="Paste specific job description or requirements to benchmark against custom roles..."></textarea>
+      </label>
+
+      <button class="button primary wide large" type="submit" id="analyzeSubmitBtn">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Run ATS Compatibility Scan
+      </button>
+    </form>
+
+    <!-- Scan Progress / Loading State -->
+    <div id="scanProgressArea" class="scan-progress-box hidden">
+      <div class="scan-animation">
+        <i class="fa-solid fa-file-lines fa-bounce text-blue"></i>
+        <h4>Scanning resume against ATS filters...</h4>
+        <p class="muted text-xs">Extracting skills, parsing sections, and matching keywords</p>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="scanProgressFill"></div>
+      </div>
+    </div>
+
+    <!-- Detailed Result Dashboard -->
+    <div id="analyzerResult" class="result-area hidden"></div>
+  </section>
+
+  <!-- Sidebar: How Scoring Works & ATS Tips -->
+  <section class="panel methodology">
+    <div class="panel-heading">
+      <div>
+        <h3>ATS Evaluation Criteria</h3>
+        <p>Transparent 100-point algorithm</p>
+      </div>
+      <span class="badge success"><i class="fa-solid fa-circle-check"></i> Standard ATS</span>
+    </div>
+
+    <div class="method-item">
+      <span class="method-number">35</span>
+      <div>
+        <strong>Hard Skills Alignment</strong>
+        <p>Checks core programming languages, frameworks, developer tools, and technologies required for the target position.</p>
+      </div>
+    </div>
+
+    <div class="method-item">
+      <span class="method-number">25</span>
+      <div>
+        <strong>Domain Keyword Density</strong>
+        <p>Verifies presence of industry terminology, methodologies (e.g. Agile, TDD), and architectural standards in context.</p>
+      </div>
+    </div>
+
+    <div class="method-item">
+      <span class="method-number">20</span>
+      <div>
+        <strong>Experience & Quantified Impact</strong>
+        <p>Scans for measurable achievements with percentages, metrics, and business outcomes.</p>
+      </div>
+    </div>
+
+    <div class="method-item">
+      <span class="method-number">10</span>
+      <div>
+        <strong>Education & Credentials</strong>
+        <p>Detects university degrees, academic background, and relevant technical certifications.</p>
+      </div>
+    </div>
+
+    <div class="method-item">
+      <span class="method-number">10</span>
+      <div>
+        <strong>Format & Section Completeness</strong>
+        <p>Checks standard ATS layout: Contact Info, Summary, Experience, Education, Technical Skills, and Projects.</p>
+      </div>
+    </div>
+
+    <div class="info-callout">
+      <i class="fa-solid fa-shield-halved"></i>
+      <div>
+        <strong>Private & Local Analysis</strong>
+        <span>All analysis executes directly within your recruitment workspace without sending candidate documents to external cloud third parties.</span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analyzer.js') }}"></script>
+{% endblock %}

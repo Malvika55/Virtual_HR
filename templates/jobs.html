@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading"><div><span class="eyebrow">RECRUITER PORTAL</span><h1>Job roles</h1><p>Manage the role catalogue that powers ATS matching and mock interviews.</p></div></section>
+<div class="two-column"><section class="panel form-panel"><h3>Add job role</h3><form method="post"><label>Job title<input name="title" required placeholder="e.g. Python Developer"></label><label>Department<input name="department" value="Engineering"></label><label>Location<input name="location" value="Remote"></label><label>Required skills<input name="requirements" required placeholder="Python, Flask, SQL, REST API"></label><button class="button primary" type="submit"><i class="fa-solid fa-plus"></i> Add role</button></form></section><section class="panel"><div class="panel-heading"><div><h3>Configured roles</h3><p>{{ jobs|length }} roles available</p></div></div>{% for job in jobs %}<div class="method-item"><span class="method-number">{{ job.id }}</span><div><strong>{{ job.title }}</strong><p>{{ job.department }} · {{ job.location }} · {{ job.requirements }}</p></div></div>{% endfor %}</section></div>
+{% endblock %}
