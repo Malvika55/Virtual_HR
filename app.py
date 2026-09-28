@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = Path(os.getenv("VERCEL_RUNTIME_DIR", "/tmp/virtual-hr" if os.getenv("VERCEL") else str(BASE_DIR)))
 UPLOAD_DIR = RUNTIME_DIR / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 load_dotenv(BASE_DIR / ".env")
 
 app = Flask(__name__)
