@@ -16,7 +16,8 @@ from utils.resume_parser import extract_text_from_pdf
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-UPLOAD_DIR = BASE_DIR / "uploads"
+RUNTIME_DIR = Path(os.getenv("VERCEL_RUNTIME_DIR", "/tmp/virtual-hr" if os.getenv("VERCEL") else str(BASE_DIR)))
+UPLOAD_DIR = RUNTIME_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 load_dotenv(BASE_DIR / ".env")
 
@@ -24,8 +25,8 @@ app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "local-demo-secret")
 ALLOWED_EXTENSIONS = {"pdf"}
-RESULTS_FILE = DATA_DIR / "interview_results.csv"
-ATS_RESULTS_FILE = DATA_DIR / "ats_results.csv"
+RESULTS_FILE = RUNTIME_DIR / "interview_results.csv"
+ATS_RESULTS_FILE = RUNTIME_DIR / "ats_results.csv"
 
 
 def load_jobs():
