@@ -13,6 +13,8 @@ python app.py
 
 Open `http://127.0.0.1:5000`. The login is intentionally simulated for demonstration. Use the HR or Candidate button to enter the corresponding workspace.
 
+The production deployment is available at `https://virtualhr.vercel.app/`.
+
 ## Implementation notes
 
 - Candidate, job, and interview question data live in `data/` CSV files.
