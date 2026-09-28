@@ -7,4 +7,6 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from app import app
 
-__all__ = ["app"]
+handler = app
+
+__all__ = ["app", "handler"]
