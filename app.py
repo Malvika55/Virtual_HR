@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import os
 import re
+import shutil
 import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
@@ -17,8 +18,12 @@ from utils.resume_parser import extract_text_from_pdf
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = Path(os.getenv("VERCEL_RUNTIME_DIR", "/tmp/virtual-hr" if os.getenv("VERCEL") else str(BASE_DIR)))
+RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR = RUNTIME_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+JOBS_FILE = RUNTIME_DIR / "jobs.csv"
+if not JOBS_FILE.exists():
+    shutil.copyfile(DATA_DIR / "jobs.csv", JOBS_FILE)
 load_dotenv(BASE_DIR / ".env")
 
 app = Flask(__name__)
@@ -30,7 +35,7 @@ ATS_RESULTS_FILE = RUNTIME_DIR / "ats_results.csv"
 
 
 def load_jobs():
-    return pd.read_csv(DATA_DIR / "jobs.csv").fillna("")
+    return pd.read_csv(JOBS_FILE).fillna("")
 
 
 def get_job(job_id):
@@ -310,7 +315,7 @@ def job_roles():
         if title:
             row = {"id": int(jobs["id"].max()) + 1 if not jobs.empty else 1, "title": title, "department": request.form.get("department", "Engineering"), "location": request.form.get("location", "Remote"), "requirements": request.form.get("requirements", "")}
             jobs = pd.concat([jobs, pd.DataFrame([row])], ignore_index=True)
-            jobs.to_csv(DATA_DIR / "jobs.csv", index=False)
+            jobs.to_csv(JOBS_FILE, index=False)
         return redirect(url_for("job_roles"))
     return render_template("jobs.html", **page_context("jobs", "Job Roles"), jobs=jobs.to_dict("records"))
 

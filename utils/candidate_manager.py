@@ -1,8 +1,16 @@
 from pathlib import Path
 from datetime import datetime
+import os
+import shutil
 import pandas as pd
 
-DATA_FILE = Path(__file__).resolve().parents[1] / "data" / "candidates.csv"
+BASE_DIR = Path(__file__).resolve().parents[1]
+SOURCE_FILE = BASE_DIR / "data" / "candidates.csv"
+RUNTIME_DIR = Path(os.getenv("VERCEL_RUNTIME_DIR", "/tmp/virtual-hr" if os.getenv("VERCEL") else str(BASE_DIR)))
+DATA_FILE = RUNTIME_DIR / "candidates.csv"
+RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+if not DATA_FILE.exists():
+    shutil.copyfile(SOURCE_FILE, DATA_FILE)
 
 
 def load_candidates() -> pd.DataFrame:
