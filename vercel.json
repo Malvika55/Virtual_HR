@@ -6,7 +6,7 @@
   },
   "rewrites": [
     {
-      "src": "/(.*)",
+      "source": "/(.*)",
       "destination": "/api/index"
     }
   ]
