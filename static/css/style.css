@@ -1833,6 +1833,41 @@ textarea {
   color: #94a0ae
 }
 
+.password-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 40px;
+  width: 40px;
+  border: 0;
+  background: transparent;
+  color: #94a0ae;
+  cursor: pointer
+}
+
+.password-toggle i {
+  position: static
+}
+
+.login-error {
+  color: #b42318;
+  background: #fff1f0;
+  border: 1px solid #f4c7c3;
+  padding: 10px 12px;
+  font-size: 12px
+}
+
+.form-switch {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center
+}
+
+.form-switch a {
+  color: var(--blue);
+  text-decoration: none
+}
+
 .form-row {
   display: flex;
   justify-content: space-between;
@@ -4448,8 +4483,7 @@ textarea {
   .page-heading,
   .builder-controls-column,
   .preview-top-actions,
-  #toast,
-  .resume-sheet-container {
+  #toast {
     display: none !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -4470,6 +4504,14 @@ textarea {
 
   .builder-preview-column {
     position: static !important;
+    display: block !important;
+  }
+
+  .resume-sheet-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .a4-sheet {
@@ -4478,6 +4520,10 @@ textarea {
     width: 100% !important;
     max-width: 100% !important;
     min-height: auto !important;
+    transform: none !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

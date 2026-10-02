@@ -6,6 +6,7 @@ import shutil
 import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, send_file, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 from utils.ats_analyzer import analyze_resume
@@ -32,6 +33,34 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or "local-demo-secret"
 ALLOWED_EXTENSIONS = {"pdf"}
 RESULTS_FILE = RUNTIME_DIR / "interview_results.csv"
 ATS_RESULTS_FILE = RUNTIME_DIR / "ats_results.csv"
+USERS_FILE = RUNTIME_DIR / "users.json"
+
+
+def load_users():
+    if not USERS_FILE.exists():
+        users = [
+            {
+                "email": "hr.manager@virtualhr.local",
+                "name": "HR Manager",
+                "role": "hr",
+                "password": generate_password_hash("demo123"),
+            },
+            {
+                "email": "candidate@virtualhr.local",
+                "name": "Candidate",
+                "role": "candidate",
+                "password": generate_password_hash("candidate123"),
+            },
+        ]
+        USERS_FILE.write_text(json.dumps(users, indent=2), encoding="utf-8")
+    try:
+        return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
+def save_users(users):
+    USERS_FILE.write_text(json.dumps(users, indent=2), encoding="utf-8")
 
 
 def load_jobs():
@@ -68,16 +97,33 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        role = request.form.get("role", "hr")
         email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        mode = request.form.get("mode", "login")
         if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
-            return render_template("login.html", error="Enter a valid email address to continue."), 400
-        session["role"] = role
+            return render_template("login.html", error="Enter a valid email address to continue.", mode=mode), 400
+        if len(password) < 6:
+            return render_template("login.html", error="Password must be at least 6 characters.", mode=mode), 400
+
+        users = load_users()
+        user = next((item for item in users if item.get("email") == email), None)
+        if mode == "register":
+            if user:
+                return render_template("login.html", error="An account with this email already exists.", mode=mode), 409
+            role = request.form.get("role", "candidate")
+            name = request.form.get("name", "").strip() or email.split("@", 1)[0].replace(".", " ").title()
+            user = {"email": email, "name": name, "role": role, "password": generate_password_hash(password)}
+            users.append(user)
+            save_users(users)
+        elif not user or not check_password_hash(user.get("password", ""), password):
+            return render_template("login.html", error="Email or password is incorrect.", mode=mode), 401
+
+        session["role"] = user["role"]
         session["email"] = email
-        local_name = email.split("@", 1)[0].replace(".", " ").replace("_", " ").replace("-", " ").title()
-        session["display_name"] = local_name or ("Candidate" if role == "candidate" else "HR Manager")
-        return redirect(url_for("dashboard" if role == "hr" else "candidate_dashboard"))
-    return render_template("login.html")
+        session["display_name"] = user.get("name") or email.split("@", 1)[0].replace(".", " ").replace("_", " ").replace("-", " ").title()
+        return redirect(url_for("dashboard" if user["role"] == "hr" else "candidate_dashboard"))
+    mode = request.args.get("mode", "login")
+    return render_template("login.html", mode=mode if mode in {"login", "register"} else "login")
 
 
 @app.route("/dashboard")
@@ -327,6 +373,8 @@ def evaluation():
 
 @app.route("/resume-builder")
 def resume_builder():
+    if session.get("role") != "candidate":
+        return redirect(url_for("dashboard"))
     return render_template("resume-builder.html", **page_context("resume-builder", "Resume Builder"))
 
 
@@ -341,6 +389,8 @@ def shortlist():
 
 @app.route("/career-suggestions")
 def career_suggestions():
+    if session.get("role") != "candidate":
+        return redirect(url_for("dashboard"))
     return render_template("career.html", **page_context("career", "Career & Course Suggestions"))
 
 

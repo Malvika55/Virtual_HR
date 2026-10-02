@@ -32,11 +32,11 @@
         <a class="nav-link {% if active == 'shortlist' %}active{% endif %}" href="{{ url_for('shortlist') }}"><i class="fa-solid fa-user-check"></i>Shortlist</a>
         {% endif %}
       </nav>
-      <nav class="nav-section">
+      {% if candidate_mode %}<nav class="nav-section">
         <p class="nav-label">Candidate tools</p>
         <a class="nav-link {% if active == 'resume-builder' %}active{% endif %}" href="{{ url_for('resume_builder') }}"><i class="fa-solid fa-pen-ruler"></i>Resume builder</a>
         <a class="nav-link {% if active == 'career' %}active{% endif %}" href="{{ url_for('career_suggestions') }}"><i class="fa-solid fa-compass"></i>Career suggestions</a>
-      </nav>
+      </nav>{% endif %}
       <nav class="nav-section">
         <p class="nav-label">Insights</p>
         {% if not candidate_mode %}<a class="nav-link {% if active == 'email' %}active{% endif %}" href="{{ url_for('email_page') }}"><i class="fa-regular fa-paper-plane"></i>Email communication</a>{% endif %}

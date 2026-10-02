@@ -126,9 +126,6 @@
   // Action Buttons
   const printResumeBtn = document.getElementById('printResumeBtn');
   const quickPrintBtn = document.getElementById('quickPrintBtn');
-  const loadSampleBtn = document.getElementById('loadSampleBtn');
-  const exportJsonBtn = document.getElementById('exportJsonBtn');
-  const importJsonInput = document.getElementById('importJsonInput');
 
   // ============================================================
   // 1. REPEATER RENDERING (FORM INPUTS)
@@ -538,58 +535,6 @@
     };
     if (printResumeBtn) printResumeBtn.addEventListener('click', printHandler);
     if (quickPrintBtn) quickPrintBtn.addEventListener('click', printHandler);
-
-    // Export JSON
-    if (exportJsonBtn) {
-      exportJsonBtn.addEventListener('click', () => {
-        const jsonStr = JSON.stringify(state, null, 2);
-        const blob = new Blob([jsonStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${(state.personal.name || 'resume').toLowerCase().replace(/\s+/g, '-')}-data.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    }
-
-    // Import JSON
-    if (importJsonInput) {
-      importJsonInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          try {
-            const imported = JSON.parse(event.target.result);
-            state = { ...state, ...imported };
-            syncFormWithState();
-            renderExperienceForm();
-            renderProjectsForm();
-            renderEducationForm();
-            renderCertForm();
-            renderLivePreview();
-            alert("Resume data successfully imported!");
-          } catch (err) {
-            alert("Could not parse JSON file. Ensure it is a valid resume export.");
-          }
-        };
-        reader.readAsText(file);
-      });
-    }
-
-    // Load Sample Data Button
-    if (loadSampleBtn) {
-      loadSampleBtn.addEventListener('click', () => {
-        syncFormWithState();
-        renderExperienceForm();
-        renderProjectsForm();
-        renderEducationForm();
-        renderCertForm();
-        renderLivePreview();
-        showToastNotice("Loaded complete ATS sample resume.");
-      });
-    }
 
     // Check for query parameter from ATS analyzer (?add_skills=...)
     const urlParams = new URLSearchParams(window.location.search);

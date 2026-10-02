@@ -1,0 +1,26 @@
+[
+  {
+    "email": "hr.manager@virtualhr.local",
+    "name": "HR Manager",
+    "role": "hr",
+    "password": "scrypt:32768:8:1$1zWzbkZeqQ1esk0I$794dc037589281d1f4cbe500d5b957747c8e67ad6791447534659f11cda7b78638ba2fd3b61bd7a9fec8069f7b89713c9aead431cdc9418060cb64619c0d64a9"
+  },
+  {
+    "email": "candidate@virtualhr.local",
+    "name": "Candidate",
+    "role": "candidate",
+    "password": "scrypt:32768:8:1$Z00VGGiGulV4OolN$d79eac08971581b80da7f4b9284d436c0e28aa96bacd7a915e7a0f2ba3fbc50b92f361718d683046af5d2095e9dadef74afab7726f41f23886bd135a5bfda088"
+  },
+  {
+    "email": "malvikathakur2712@gmail.com",
+    "name": "Malvika Mangesh Thakur",
+    "role": "candidate",
+    "password": "scrypt:32768:8:1$MpiKJOXrM0fyVpui$cb25140f9efe2404f2390ec8727d54e3eeed8206eb6297fd897e2b31a7ffda766e114f6a43355b74b74c6b0d5b603d3964e1e9198b21233d7ff5188f66a7259d"
+  },
+  {
+    "email": "demo@gmail.com",
+    "name": "Sohan Bhoir",
+    "role": "hr",
+    "password": "scrypt:32768:8:1$D0Pq7yBmYM7znnFO$ba3fe3a546230caeeb8f764bc36b51d3ec627d6dba6a27b3df14d8bada91dda875cd5dcca0eb960b73647ee4c1789757dc3d4cda140c40f6d7c9d64417e5aff2"
+  }
+]
