@@ -18,6 +18,8 @@
         <p class="nav-label">{{ 'Candidate portal' if candidate_mode else 'Workspace' }}</p>
         {% if candidate_mode %}
         <a class="nav-link {% if active == 'candidate-dashboard' %}active{% endif %}" href="{{ url_for('candidate_dashboard') }}"><i class="fa-solid fa-chart-pie"></i>My dashboard</a>
+        <a class="nav-link {% if active == 'open-roles' %}active{% endif %}" href="{{ url_for('open_roles') }}"><i class="fa-solid fa-briefcase"></i>Open roles</a>
+        <a class="nav-link {% if active == 'application-status' %}active{% endif %}" href="{{ url_for('application_status') }}"><i class="fa-solid fa-timeline"></i>Application status</a>
         <a class="nav-link {% if active == 'resume-analyzer' %}active{% endif %}" href="{{ url_for('resume_analyzer') }}"><i class="fa-solid fa-file-circle-check"></i>Analyze resume</a>
         <a class="nav-link {% if active == 'mock-interview' %}active{% endif %}" href="{{ url_for('mock_interview') }}"><i class="fa-solid fa-comments"></i>Mock interview</a>
         {% else %}

@@ -4,9 +4,9 @@
         <h1>{{ candidate.name }}</h1>
         <p>{{ candidate.position }} · {{ candidate.location }}</p>
     </div>
-    <div class="heading-actions"><button class="button secondary"
-            data-toast="Email composer opened for {{ candidate.name }}."><i class="fa-regular fa-paper-plane"></i>
-            Contact</button><button class="button primary" data-status="Shortlisted"
+        <div class="heading-actions"><a class="button secondary"
+            href="{{ url_for('email_page', recipient=candidate.email, subject='Regarding your Virtual HR application') }}"><i class="fa-regular fa-paper-plane"></i>
+            Contact</a><button class="button primary" data-status="Shortlisted"
             data-candidate="{{ candidate.id }}"><i class="fa-solid fa-user-check"></i> Shortlist</button></div>
 </section>
 <div class="profile-grid">
@@ -22,11 +22,10 @@
         <div class="detail-section">
             <h3>Professional information</h3>
             <div class="detail-grid">
-                <div><span>Applied position</span><strong>{{ candidate.position }}</strong></div>
+                <div><span>Applied position</span><strong>{{ applied_role }}</strong></div>
                 <div><span>Experience</span><strong>{{ candidate.experience }}</strong></div>
                 <div><span>Skills</span><strong>{{ candidate.skills }}</strong></div>
-                <div><span>Resume</span><strong><a class="text-link" href="{{ url_for('resume_analyzer') }}">View
-                            uploaded resume <i class="fa-solid fa-arrow-up-right-from-square"></i></a></strong></div>
+                <div><span>Resume</span><strong>{% if latest_ats and latest_ats.resume_available %}<a class="text-link" href="{{ url_for('uploaded_resume', filename=latest_ats.resume_filename) }}" target="_blank" rel="noopener">{{ latest_ats.resume_filename }} <i class="fa-solid fa-arrow-up-right-from-square"></i></a>{% elif latest_ats and latest_ats.resume_filename %}{{ latest_ats.resume_filename }} <small>(file unavailable)</small>{% else %}Not uploaded{% endif %}</strong></div>
             </div>
         </div>
     </section>
@@ -62,6 +61,19 @@
                     class="fa-solid fa-pause"></i> Put on hold</button><button class="button danger"
                 data-status="Rejected" data-candidate="{{ candidate.id }}"><i class="fa-solid fa-xmark"></i>
                 Reject</button></div>
+    </section>
+    <section class="panel schedule-panel">
+        <div class="panel-heading"><div><h3>Interview scheduling</h3><p>Share the next hiring action with the candidate.</p></div></div>
+        <form method="post" action="{{ url_for('schedule_candidate_interview', candidate_id=candidate.id) }}"><div class="form-grid"><label>Date<input type="date" name="interview_date" value="{{ candidate.interview_date }}" required></label><label>Time<input type="time" name="interview_time" value="{{ candidate.interview_time }}" required></label><label>Interview type<select name="interview_type"><option {% if candidate.interview_type == 'Technical' %}selected{% endif %}>Technical</option><option {% if candidate.interview_type == 'Panel' %}selected{% endif %}>Panel</option><option {% if candidate.interview_type == 'HR' %}selected{% endif %}>HR</option></select></label><label class="full">Notes for candidate<textarea name="hr_notes" rows="3" placeholder="Add preparation or meeting details">{{ candidate.hr_notes }}</textarea></label></div><button class="button primary" type="submit"><i class="fa-solid fa-calendar-check"></i> Save interview schedule</button></form>
+    </section>
+    <section class="panel interview-history-panel">
+        <div class="panel-heading">
+            <div>
+                <h3>Interview history</h3>
+                <p>Recorded interview responses and scores</p>
+            </div>
+        </div>
+        {% if interview_records %}<div class="interview-history-list">{% for interview in interview_records %}<div class="interview-history-item"><div><strong>{{ interview.job_role }}</strong><span>{{ interview.category }} · {{ interview.date }}</span></div><b>{{ interview.score }}/100</b></div>{% endfor %}</div>{% else %}<p class="muted">No interview has been recorded for this candidate yet.</p>{% endif %}
     </section>
 </div>{% endblock %}{% block scripts %}
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>{% endblock %}

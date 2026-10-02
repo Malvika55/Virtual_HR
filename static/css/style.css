@@ -1567,36 +1567,84 @@ textarea {
   min-height: 300px
 }
 
+.funnel-total {
+  color: #718096;
+  font-size: 10px;
+  white-space: nowrap
+}
+
+.funnel-total i {
+  color: var(--blue);
+  margin-right: 4px
+}
+
 .bar-chart {
   display: flex;
-  align-items: flex-end;
-  height: 205px;
-  gap: 12%;
-  padding: 20px 20px 0
+  flex-direction: column;
+  gap: 10px;
+  height: auto;
+  padding: 3px 0 4px;
+  position: relative
 }
 
 .bar-chart>div {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 28px 130px 1fr;
   align-items: center;
-  height: 100%;
-  justify-content: flex-end;
-  gap: 8px;
-  flex: 1
+  gap: 10px;
+  min-height: 34px;
+  position: relative
 }
 
-.bar-chart span {
+.funnel-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 32px;
+  width: 2px;
+  height: 12px;
+  background: #d9e2ef
+}
+
+.funnel-step-marker {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #c9d8ed;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--blue);
   font-size: 10px;
-  color: #788699
+  font-weight: 700;
+  z-index: 1
+}
+
+.funnel-step-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px
+}
+
+.funnel-step-copy span {
+  color: #536276;
+  font-size: 11px;
+  font-weight: 600
+}
+
+.funnel-step-copy small {
+  color: #8b98a8;
+  font-size: 9px
 }
 
 .bar-chart b {
-  width: 35px;
-  min-height: 18px;
+  height: 18px !important;
+  min-width: 0;
   background: var(--blue);
-  border-radius: 3px 3px 0 0;
+  border-radius: 3px;
   position: relative;
-  max-height: 170px
+  display: block;
+  box-shadow: 0 2px 5px rgba(38, 78, 140, .12)
 }
 
 .bar-chart>div:nth-child(2) b {
@@ -1617,13 +1665,18 @@ textarea {
 
 .bar-chart em {
   position: absolute;
-  top: -18px;
-  left: 0;
-  width: 100%;
-  text-align: center;
+  top: 2px;
+  right: -32px;
+  width: 26px;
+  text-align: left;
   font: 700 10px 'DM Sans';
   color: #607086;
   font-style: normal
+}
+
+.funnel-step:last-child .funnel-step-marker {
+  border-color: #58b997;
+  color: #218863
 }
 
 .status-bars {
@@ -1857,6 +1910,23 @@ textarea {
   font-size: 12px
 }
 
+.course-list a {
+  color: inherit;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  text-decoration: none
+}
+
+.course-list a:hover {
+  color: var(--blue)
+}
+
+.course-list a i {
+  color: var(--blue);
+  font-size: 11px
+}
+
 .form-switch {
   color: var(--muted);
   font-size: 12px;
@@ -1866,6 +1936,218 @@ textarea {
 .form-switch a {
   color: var(--blue);
   text-decoration: none
+}
+
+.interview-history-panel {
+  grid-column: 1 / -1
+}
+
+.schedule-panel {
+  grid-column: 1 / -1
+}
+
+.schedule-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px
+}
+
+.application-tracker-card,
+.upcoming-interview-card {
+  margin-bottom: 16px
+}
+
+.application-tracker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px
+}
+
+.application-tracker-header h2,
+.upcoming-interview-card h2 {
+  color: var(--navy);
+  font-size: 20px;
+  margin: 4px 0
+}
+
+.application-tracker-header p,
+.upcoming-interview-card p {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.application-tracker-line {
+  display: grid;
+  grid-template-columns: 1fr 48px 1fr 48px 1fr;
+  align-items: center;
+  margin-top: 22px
+}
+
+.tracker-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center
+}
+
+.tracker-step > span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #d7e0eb;
+  border-radius: 50%;
+  color: #91a0b1;
+  font-size: 10px
+}
+
+.tracker-step.complete > span {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: #fff
+}
+
+.tracker-step strong { color: var(--navy); font-size: 11px }
+.tracker-step small { color: var(--muted); font-size: 10px }
+
+.tracker-connector {
+  height: 2px;
+  background: #d7e0eb
+}
+
+.tracker-connector.complete { background: var(--blue) }
+
+.upcoming-interview-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 4px solid var(--green)
+}
+
+.upcoming-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: #e2f6ee;
+  color: #218863;
+  border-radius: 50%
+}
+
+.application-waiting { margin-bottom: 16px }
+.application-waiting > i { color: var(--muted); font-size: 24px; margin-bottom: 8px }
+
+@media (max-width: 700px) {
+  .application-tracker-line { grid-template-columns: 1fr; gap: 8px }
+  .tracker-connector { width: 2px; height: 18px; justify-self: center }
+}
+
+.interview-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px
+}
+
+.interview-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  background: #fbfcfe;
+  border-radius: 5px
+}
+
+.interview-history-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px
+}
+
+.interview-history-item strong {
+  color: var(--navy);
+  font-size: 12px
+}
+
+.interview-history-item span {
+  color: var(--muted);
+  font-size: 10px
+}
+
+.interview-history-item b {
+  color: var(--violet);
+  font-size: 13px
+}
+
+.open-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px
+}
+
+.role-application-card {
+  align-self: start
+}
+
+.role-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px
+}
+
+.role-card-heading h3 {
+  color: var(--navy);
+  font-size: 16px;
+  margin-bottom: 3px
+}
+
+.role-card-heading p,
+.role-requirements {
+  color: var(--muted);
+  font-size: 11px
+}
+
+.role-requirements {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  line-height: 1.6
+}
+
+.application-details {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 12px
+}
+
+.application-details summary {
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  list-style: none
+}
+
+.application-details summary::-webkit-details-marker {
+  display: none
+}
+
+.application-details form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px
+}
+
+@media (max-width: 800px) {
+  .open-roles-grid {
+    grid-template-columns: 1fr
+  }
 }
 
 .form-row {
@@ -4548,4 +4830,109 @@ textarea {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.communication-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+  gap: 16px;
+  align-items: start
+}
+
+.communication-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px
+}
+
+.communication-heading h3 {
+  color: var(--navy);
+  font-size: 15px;
+  margin-bottom: 4px
+}
+
+.communication-heading p,
+.email-preview-panel .panel-heading p {
+  color: var(--muted);
+  font-size: 11px
+}
+
+.template-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  margin-right: 2px
+}
+
+.template-chip.active {
+  background: #eef4ff;
+  border-color: #9bb9e8;
+  color: var(--blue)
+}
+
+.field-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #8a97a7;
+  font-size: 10px;
+  margin-top: -8px
+}
+
+.field-meta b {
+  color: var(--blue)
+}
+
+.email-preview-panel {
+  min-height: 390px
+}
+
+.preview-eye {
+  color: var(--blue);
+  font-size: 14px
+}
+
+.email-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 0 14px
+}
+
+.email-preview-meta span {
+  color: var(--muted);
+  font-size: 11px
+}
+
+.email-preview-meta strong {
+  color: var(--navy);
+  font-size: 14px
+}
+
+.email-preview-body {
+  min-height: 190px;
+  color: #4d5d70;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 18px 0;
+  white-space: pre-wrap
+}
+
+.delivery-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  padding-top: 14px
+}
+
+.delivery-note i { color: var(--green) }
+
+@media (max-width: 900px) {
+  .communication-layout { grid-template-columns: 1fr }
 }

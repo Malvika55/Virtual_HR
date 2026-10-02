@@ -16,8 +16,13 @@ def send_email(recipient: str, subject: str, message: str) -> bool:
     email["To"] = recipient
     email["Subject"] = subject
     email.set_content(message)
-    with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", "587")), timeout=20) as server:
-        server.starttls()
-        server.login(username, password)
-        server.send_message(email)
+    try:
+        with smtplib.SMTP(host, int(os.getenv("SMTP_PORT", "587")), timeout=20) as server:
+            server.starttls()
+            server.login(username, password)
+            server.send_message(email)
+    except smtplib.SMTPAuthenticationError as error:
+        raise ValueError("Gmail authentication failed. Use a Gmail App Password, not your normal Gmail password.") from error
+    except (smtplib.SMTPException, OSError) as error:
+        raise ValueError(f"Gmail could not send this message: {error}") from error
     return True

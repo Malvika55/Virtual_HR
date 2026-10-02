@@ -16,7 +16,7 @@
                 selected_position==item %}selected{% endif %}>{{ item }}</option>{% endfor %}
         </select><select name="status">
             <option value="">All statuses</option>{% for item in
-            ['New','Screening','Interview','Shortlisted','Hold','Rejected'] %}<option value="{{ item }}" {% if
+            ['New','Screening','Interview','Shortlisted','Not shortlisted','Hold','Rejected'] %}<option value="{{ item }}" {% if
                 selected_status==item %}selected{% endif %}>{{ item }}</option>{% endfor %}
         </select><button class="button secondary" type="submit">Apply filters</button>
     </form>

@@ -15,7 +15,9 @@
     "email": "malvikathakur2712@gmail.com",
     "name": "Malvika Mangesh Thakur",
     "role": "candidate",
-    "password": "scrypt:32768:8:1$MpiKJOXrM0fyVpui$cb25140f9efe2404f2390ec8727d54e3eeed8206eb6297fd897e2b31a7ffda766e114f6a43355b74b74c6b0d5b603d3964e1e9198b21233d7ff5188f66a7259d"
+    "password": "scrypt:32768:8:1$MpiKJOXrM0fyVpui$cb25140f9efe2404f2390ec8727d54e3eeed8206eb6297fd897e2b31a7ffda766e114f6a43355b74b74c6b0d5b603d3964e1e9198b21233d7ff5188f66a7259d",
+    "ats_score": 76,
+    "resume_filename": "Malvika_Resume.pdf"
   },
   {
     "email": "demo@gmail.com",

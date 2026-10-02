@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading">
+  <div><span class="eyebrow">CANDIDATE PORTAL</span><h1>Application status</h1><p>Follow your application as the hiring team reviews it.</p></div>
+  <a class="button secondary" href="{{ url_for('open_roles') }}"><i class="fa-solid fa-briefcase"></i> Browse roles</a>
+</section>
+{% if candidate %}
+<section class="panel application-tracker-card">
+  <div class="application-tracker-header"><div><span class="eyebrow">CURRENT APPLICATION</span><h2>{{ candidate.position }}</h2><p>Applied on {{ candidate.application_date or 'Date not recorded' }}</p></div><span class="status {{ candidate.status|lower|replace(' ', '-') }}">{{ candidate.status }}</span></div>
+  <div class="application-tracker-line"><div class="tracker-step complete"><span><i class="fa-solid fa-check"></i></span><strong>Application submitted</strong><small>{{ candidate.application_date or 'Submitted' }}</small></div><div class="tracker-connector {% if candidate.status not in ['New', 'Rejected'] %}complete{% endif %}"></div><div class="tracker-step {% if candidate.status not in ['New', 'Rejected'] %}complete{% endif %}"><span><i class="fa-solid fa-user-check"></i></span><strong>HR review</strong><small>{{ candidate.status }}</small></div><div class="tracker-connector {% if candidate.interview_date %}complete{% endif %}"></div><div class="tracker-step {% if candidate.interview_date %}complete{% endif %}"><span><i class="fa-solid fa-video"></i></span><strong>Interview</strong><small>{% if candidate.interview_date %}Scheduled{% else %}Awaiting schedule{% endif %}</small></div></div>
+</section>
+{% if candidate.interview_date %}<section class="panel upcoming-interview-card"><div class="upcoming-icon"><i class="fa-solid fa-calendar-check"></i></div><div><span class="eyebrow">UPCOMING INTERVIEW</span><h2>{{ candidate.interview_date }}{% if candidate.interview_time %} at {{ candidate.interview_time }}{% endif %}</h2><p>{{ candidate.interview_type or 'Interview' }} interview for {{ candidate.position }}. Check your email for any additional instructions.</p></div></section>{% else %}<section class="panel empty-state application-waiting"><i class="fa-regular fa-clock"></i><h3>No interview scheduled yet</h3><p>The HR team will update this page when an interview is arranged.</p></section>{% endif %}
+<section class="stats-grid application-score-grid"><div class="stat-card compact"><span>ATS score</span><strong>{{ candidate.ats_score }}<small>/100</small></strong></div><div class="stat-card compact"><span>Interview score</span><strong>{{ candidate.interview_score }}<small>/100</small></strong></div><div class="stat-card compact"><span>Screening score</span><strong>{{ candidate.screening_score }}<small>/100</small></strong></div></section>
+{% else %}<section class="panel empty-state"><h3>No application found</h3><p>Apply to an open role to start tracking your progress.</p><a class="button primary" href="{{ url_for('open_roles') }}">View open roles</a></section>{% endif %}
+{% endblock %}

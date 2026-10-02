@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">CANDIDATE PORTAL</span>
+    <h1>Open roles</h1>
+    <p>Apply to a role, share your experience, and continue directly into a role-specific mock interview.</p>
+  </div>
+</section>
+<div class="open-roles-grid">
+  {% for job in jobs %}
+  <section class="panel role-application-card">
+    <div class="role-card-heading">
+      <div class="suggestion-icon blue"><i class="fa-solid fa-briefcase"></i></div>
+      <div><h3>{{ job.title }}</h3><p>{{ job.department }} · {{ job.location }}</p></div>
+    </div>
+    <p class="role-requirements"><strong>Skills:</strong> {{ job.requirements }}</p>
+    <details class="application-details">
+      <summary><i class="fa-solid fa-arrow-right"></i> Apply for this role</summary>
+      <form method="post" action="{{ url_for('apply_for_role', job_id=job.id) }}" enctype="multipart/form-data">
+        <div class="form-grid">
+          <label>Full name<input name="name" value="{{ candidate.name }}" required></label>
+          <label>Email<input type="email" value="{{ candidate.email }}" readonly></label>
+          <label>Phone number<input name="phone" value="{{ candidate.phone }}" required></label>
+          <label>Experience<input name="experience" value="{{ candidate.experience }}" placeholder="e.g. 2 years" required></label>
+          <label>Location<input name="location" value="{{ candidate.location }}" required></label>
+          <label>Skills<input name="skills" value="{{ candidate.skills }}" placeholder="Python; Flask; SQL" required></label>
+          <label class="full">Resume PDF<input type="file" name="resume" accept="application/pdf"></label>
+        </div>
+        <button class="button primary" type="submit"><i class="fa-solid fa-paper-plane"></i> Submit application & start interview</button>
+      </form>
+    </details>
+  </section>
+  {% else %}
+  <section class="panel empty-state"><h3>No open roles yet</h3><p>New roles posted by the HR manager will appear here.</p></section>
+  {% endfor %}
+</div>
+{% endblock %}

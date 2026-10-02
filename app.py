@@ -10,7 +10,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 from utils.ats_analyzer import analyze_resume
-from utils.candidate_manager import load_candidates, save_candidates, record_interview_score, update_candidate
+from utils.candidate_manager import ensure_candidate_profile, load_candidates, save_candidates, record_interview_score, update_candidate
 from utils.email_service import send_email
 from utils.interview_evaluator import evaluate_answer, evaluate_question
 from utils.question_engine import load_questions, select_questions
@@ -121,6 +121,28 @@ def login():
         session["role"] = user["role"]
         session["email"] = email
         session["display_name"] = user.get("name") or email.split("@", 1)[0].replace(".", " ").replace("_", " ").replace("-", " ").title()
+        if user["role"] == "candidate":
+            candidate_id = ensure_candidate_profile(
+                email,
+                session["display_name"],
+                phone=request.form.get("phone", "").strip(),
+                position=request.form.get("position", "").strip(),
+                experience=request.form.get("experience", "").strip(),
+                location=request.form.get("location", "").strip(),
+                skills=request.form.get("skills", "").strip(),
+            )
+            saved_profile = {key: user[key] for key in ("ats_score", "resume_filename", "position") if key in user}
+            if not saved_profile.get("ats_score") and ATS_RESULTS_FILE.exists():
+                ats_records = pd.read_csv(ATS_RESULTS_FILE).fillna("")
+                matches = ats_records[ats_records["candidate_id"].astype(str).str.lower() == email]
+                if not matches.empty:
+                    latest = matches.iloc[-1]
+                    saved_profile["ats_score"] = int(latest.get("ats_score", 0))
+                    saved_profile["resume_filename"] = latest.get("resume_filename", "")
+            if saved_profile:
+                update_candidate(candidate_id, **saved_profile)
+                user.update(saved_profile)
+                save_users(users)
         return redirect(url_for("dashboard" if user["role"] == "hr" else "candidate_dashboard"))
     mode = request.args.get("mode", "login")
     return render_template("login.html", mode=mode if mode in {"login", "register"} else "login")
@@ -142,8 +164,25 @@ def dashboard():
 @app.route("/candidate-dashboard")
 def candidate_dashboard():
     context = page_context("candidate-dashboard", "Candidate Dashboard")
-    context.update({"candidate_name": context["display_name"], "ats_score": 82, "interview_score": 78})
+    candidates = load_candidates()
+    candidate = candidates[candidates["email"].astype(str).str.lower() == session.get("email", "").lower()]
+    profile = candidate.iloc[0] if not candidate.empty else None
+    context.update({
+        "candidate_name": context["display_name"],
+        "ats_score": int(profile["ats_score"]) if profile is not None else 0,
+        "interview_score": int(profile["interview_score"]) if profile is not None else 0,
+    })
     return render_template("candidate-dashboard.html", **context)
+
+
+@app.route("/application-status")
+def application_status():
+    if session.get("role") != "candidate":
+        return redirect(url_for("dashboard"))
+    candidates = load_candidates()
+    match = candidates[candidates["email"].astype(str).str.lower() == session.get("email", "").lower()]
+    candidate = match.iloc[0].to_dict() if not match.empty else None
+    return render_template("application-status.html", **page_context("application-status", "Application Status"), candidate=candidate)
 
 
 @app.route("/candidates")
@@ -154,7 +193,9 @@ def candidates():
     position = request.args.get("position", "").strip()
     if query:
         frame = frame[frame.apply(lambda row: query in " ".join(map(str, row.values)).lower(), axis=1)]
-    if status:
+    if status == "Not shortlisted":
+        frame = frame[frame["status"] != "Shortlisted"]
+    elif status:
         frame = frame[frame["status"] == status]
     if position:
         frame = frame[frame["position"] == position]
@@ -169,7 +210,54 @@ def candidate_detail(candidate_id):
     record = frame[frame["id"].astype(str) == str(candidate_id)]
     if record.empty:
         return redirect(url_for("candidates"))
-    return render_template("candidate-details.html", **page_context("candidates", "Candidate Profile"), candidate=record.iloc[0].to_dict())
+    candidate = record.iloc[0].to_dict()
+    email = str(candidate.get("email", "")).lower()
+    ats_records = pd.read_csv(ATS_RESULTS_FILE).fillna("") if ATS_RESULTS_FILE.exists() else pd.DataFrame()
+    if not ats_records.empty and "candidate_id" in ats_records:
+        ats_records = ats_records[
+            (ats_records["candidate_id"].astype(str).str.lower() == email)
+            | (ats_records["candidate_id"].astype(str) == str(candidate_id))
+        ]
+    latest_ats = ats_records.iloc[-1].to_dict() if not ats_records.empty else None
+    if latest_ats:
+        if candidate.get("resume_filename"):
+            latest_ats["resume_filename"] = candidate["resume_filename"]
+        resume_name = secure_filename(str(latest_ats.get("resume_filename", "")))
+        latest_ats["resume_available"] = bool(resume_name and (UPLOAD_DIR / resume_name).is_file())
+    elif candidate.get("resume_filename"):
+        resume_name = secure_filename(str(candidate["resume_filename"]))
+        latest_ats = {
+            "resume_filename": candidate["resume_filename"],
+            "resume_available": bool(resume_name and (UPLOAD_DIR / resume_name).is_file()),
+        }
+    interview_records = pd.read_csv(RESULTS_FILE).fillna("") if RESULTS_FILE.exists() else pd.DataFrame()
+    if not interview_records.empty and "candidate_id" in interview_records:
+        interview_records = interview_records[
+            (interview_records["candidate_id"].astype(str).str.lower() == email)
+            | (interview_records["candidate_id"].astype(str) == str(candidate_id))
+        ]
+    applied_role = candidate.get("position", "")
+    if latest_ats and latest_ats.get("job_id"):
+        job = get_job(latest_ats["job_id"])
+        if job:
+            applied_role = job.get("title", applied_role)
+    return render_template(
+        "candidate-details.html",
+        **page_context("candidates", "Candidate Profile"),
+        candidate=candidate,
+        applied_role=applied_role,
+        latest_ats=latest_ats,
+        interview_records=interview_records.to_dict("records"),
+    )
+
+
+@app.route("/uploads/<path:filename>")
+def uploaded_resume(filename):
+    safe_name = secure_filename(filename)
+    path = UPLOAD_DIR / safe_name
+    if not path.is_file():
+        return redirect(url_for("resume_analyzer"))
+    return send_file(path, as_attachment=False, download_name=safe_name)
 
 
 @app.route("/candidate/<candidate_id>/status", methods=["POST"])
@@ -238,7 +326,19 @@ def analyze_resume_route():
     }
     pd.DataFrame([record]).to_csv(ATS_RESULTS_FILE, mode="a", header=not ATS_RESULTS_FILE.exists(), index=False)
 
-    update_candidate(candidate_id, ats_score=result["score"])
+    update_values = {"ats_score": result["score"]}
+    if job and isinstance(job, dict):
+        update_values["position"] = job.get("title", "")
+    update_values["resume_filename"] = filename
+    update_candidate(candidate_id, **update_values)
+    users = load_users()
+    for user in users:
+        if user.get("email", "").lower() == str(candidate_id).lower() or user.get("email", "").lower() == str(session.get("email", "")).lower():
+            user.update({"ats_score": result["score"], "resume_filename": filename})
+            if job and isinstance(job, dict):
+                user["position"] = job.get("title", "")
+            save_users(users)
+            break
 
     return jsonify(result)
 
@@ -269,6 +369,66 @@ def mock_interview():
         selected_difficulty=difficulty,
         selected_count=count,
     )
+
+
+@app.route("/open-roles")
+def open_roles():
+    if session.get("role") != "candidate":
+        return redirect(url_for("dashboard"))
+    email = session.get("email", "").lower()
+    candidates = load_candidates()
+    match = candidates[candidates["email"].astype(str).str.lower() == email]
+    candidate = match.iloc[0].to_dict() if not match.empty else {"name": session.get("display_name", ""), "email": email}
+    return render_template("open-roles.html", **page_context("open-roles", "Open Roles"), jobs=load_jobs().to_dict("records"), candidate=candidate)
+
+
+@app.route("/apply/<job_id>", methods=["POST"])
+def apply_for_role(job_id):
+    if session.get("role") != "candidate":
+        return redirect(url_for("login"))
+    job = get_job(job_id)
+    if not job:
+        return redirect(url_for("open_roles"))
+    email = session.get("email", "").lower()
+    candidate_id = ensure_candidate_profile(email, session.get("display_name", "Candidate"))
+    values = {
+        "name": request.form.get("name", "").strip(),
+        "phone": request.form.get("phone", "").strip(),
+        "experience": request.form.get("experience", "").strip(),
+        "location": request.form.get("location", "").strip(),
+        "skills": request.form.get("skills", "").strip(),
+        "position": job["title"],
+        "status": "New",
+        "ats_score": 0,
+        "screening_score": 0,
+        "interview_score": 0,
+        "application_date": pd.Timestamp.now().strftime("%Y-%m-%d"),
+        "interview_date": "",
+        "interview_time": "",
+        "interview_type": "",
+    }
+    resume = request.files.get("resume")
+    if resume and resume.filename:
+        if not resume.filename.lower().endswith(".pdf"):
+            return redirect(url_for("open_roles"))
+        filename = secure_filename(f"{candidate_id}_{resume.filename}")
+        resume.save(UPLOAD_DIR / filename)
+        values["resume_filename"] = filename
+    update_candidate(email, **values)
+    return redirect(url_for("mock_interview", job_id=job_id))
+
+
+@app.route("/candidate/<candidate_id>/interview", methods=["POST"])
+def schedule_candidate_interview(candidate_id):
+    values = {
+        "status": "Interview Scheduled",
+        "interview_date": request.form.get("interview_date", "").strip(),
+        "interview_time": request.form.get("interview_time", "").strip(),
+        "interview_type": request.form.get("interview_type", "Technical"),
+        "hr_notes": request.form.get("hr_notes", "").strip(),
+    }
+    update_candidate(candidate_id, **values)
+    return redirect(url_for("candidate_detail", candidate_id=candidate_id))
 
 
 @app.route("/evaluate-interview", methods=["POST"])
@@ -337,6 +497,8 @@ def complete_interview():
     pd.DataFrame(records).to_csv(RESULTS_FILE, mode="a", header=not RESULTS_FILE.exists(), index=False)
 
     record_interview_score(candidate_identifier, score)
+    if payload.get("job_role"):
+        update_candidate(candidate_identifier, position=payload["job_role"])
 
     return jsonify(result)
 
@@ -405,13 +567,35 @@ def email_page():
             sent = send_email(request.form.get("recipient", ""), request.form.get("subject", ""), request.form.get("message", ""))
         except (OSError, ValueError) as error:
             email_error = str(error)
-    return render_template("email.html", **page_context("email", "Email Communication"), sent=sent, email_error=email_error)
+    return render_template(
+        "email.html",
+        **page_context("email", "Email Communication"),
+        sent=sent,
+        email_error=email_error,
+        recipient=request.args.get("recipient", request.form.get("recipient", "")),
+        subject=request.args.get("subject", request.form.get("subject", "")),
+        message=request.args.get("message", request.form.get("message", "")),
+    )
 
 
 @app.route("/reports")
 def reports():
     frame = load_candidates()
-    stats = {"applications": len(frame), "screened": int((frame["screening_score"] > 0).sum()), "interviewed": int((frame["interview_score"] > 0).sum()), "shortlisted": int((frame["status"] == "Shortlisted").sum()), "rejected": int((frame["status"] == "Rejected").sum()), "avg_ats": round(frame["ats_score"].mean()), "avg_interview": round(frame["interview_score"].mean())}
+    applications = len(frame)
+    screened = int((frame["screening_score"] > 0).sum())
+    interviewed = int((frame["interview_score"] > 0).sum())
+    shortlisted = int((frame["status"] == "Shortlisted").sum())
+    selected = int((frame["status"] == "Selected").sum())
+    stats = {"applications": applications, "screened": screened, "interviewed": interviewed, "shortlisted": shortlisted, "selected": selected, "rejected": int((frame["status"] == "Rejected").sum()), "avg_ats": round(frame["ats_score"].mean()), "avg_interview": round(frame["interview_score"].mean())}
+    stats["funnel"] = [
+        {"label": "Applications", "count": applications},
+        {"label": "Screened", "count": screened},
+        {"label": "Interviewed", "count": interviewed},
+        {"label": "Shortlisted", "count": shortlisted},
+        {"label": "Selected", "count": selected},
+    ]
+    for stage in stats["funnel"]:
+        stage["percentage"] = round(stage["count"] / applications * 100) if applications else 0
     return render_template("reports.html", **page_context("reports", "Reports & Analytics"), stats=stats)
 
 
